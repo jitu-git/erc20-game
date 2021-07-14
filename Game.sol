@@ -33,7 +33,7 @@ contract Game is Investors {
     function convertEthToToken(uint tokenAmount,address tokenAdd,uint ethAmount) public {
 
         uint deadline1 = block.timestamp + 15; // using 'now' for convenience, for mainnet pass deadline from frontend!
-        uniswapRouter.swapETHForExactTokens{ value: ethAmount }(tokenAmount, getPathForETHtoToken(tokenAdd), address(this), deadline1);
+        uniswapRouter.swapExactETHForTokens{ value: ethAmount }(tokenAmount, getPathForETHtoToken(tokenAdd), address(this), deadline1);
 
     }
 
@@ -55,7 +55,7 @@ contract Game is Investors {
 
         uint256 eth_amount = msg.value;
         
-        convertEthToToken(getEstimatedETHforToken(eth_amount,tokenAddress)[0],tokenAddress,eth_amount);
+        convertEthToToken(getEstimatedETHforToken(eth_amount,tokenAddress)[1],tokenAddress,eth_amount);
 
         uint256 shareX = Utils.percent(eth_amount, gameShare);
         uint256 shareY = Utils.percent(eth_amount, investorsShare);
@@ -148,4 +148,5 @@ contract Game is Investors {
     function setPairAddress(address _tokenAddress) onlyOwner public {
         tokenAddress = _tokenAddress;
     }
+    
 }
