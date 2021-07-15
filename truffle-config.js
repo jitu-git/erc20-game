@@ -1,40 +1,44 @@
-const HDWalletProvider = require("@truffle/hdwallet-provider");
+var infuraEndpoint = "https://goerli.infura.io/v3/0706a68d827741d68795befea84d4205";
+const HDWalletProvider = require('truffle-hdwallet-provider');
+const privateKeys = ["0xf2309708661390b28b35b1368de0b317953a3e08262e08a6a7c19dafd4e33eb5"];
 
 module.exports = {
-  // Uncommenting the defaults below 
-  // provides for an easier quick-start with Ganache.
-  // You can also follow this format for other networks;
-  // see <http://truffleframework.com/docs/advanced/configuration>
-  // for more details on how to specify configuration options!
-  //
-  networks: {
-   development: {
-     host: "127.0.0.1",
-     port: 7545,
-     network_id: "*"
-   },
-   test: {
-     host: "127.0.0.1",
-     port: 7545,
-     network_id: "*"
-   },
-   kovan : {
-    provider: function(){
-      return new HDWalletProvider(
-        "PRIVATE_KEY",
-        'https://kovan.infura.io/v3/INFURA_APP_ID'
-      )
-    },
-    gas: 5000000,
-    gasPrice: 25000000000,
-    network_id: 42
-    }
+  plugins:[
+    'truffle-plugin-verify'
+  ],
+  api_keys:{
+    etherscan:'7V8SH8383TNV3QIMNBUUETVEJYFEDHN335'
   },
-  
-
-  compilers: {
+ networks: {
+matic: {
+  provider: () => new HDWalletProvider(privateKeys, `https://matic-mainnet.chainstacklabs.com`),
+  network_id: 137,
+  chain_id: 137,
+  confirmations: 2,
+  timeoutBlocks: 200,
+  skipDryRun: true
+},
+goerli: {
+  provider:() =>new HDWalletProvider(privateKeys, infuraEndpoint),
+  network_id: 5,
+  skipDryRun: true
+ },
+ bsc: {
+  provider: () => new HDWalletProvider(privateKeys, `https://data-seed-prebsc-2-s3.binance.org:8545/`),
+      network_id: 97,
+      confirmations: 1,
+      timeoutBlocks: 100,
+      skipDryRun: true
+ }
+ },
+ compilers: {
     solc: {
-      version: "^0.8.0"
+      version: "0.6.6",
+      settings: {
+        optimizer: {
+          enabled: true
+        }
+      }
     }
-  },
+  }
 };

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity =0.6.6;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./uniSwap/interfaces/IUniswapV2Router02.sol";
+import "../node_modules/openzeppelin-solidity/contracts/interfaces/IERC20.sol";
+import "../node_modules/openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./Investors.sol";
 import "./Utils.sol";
 
@@ -13,28 +15,59 @@ contract Game is Investors {
     event GameShareHolderChanged(address from, address to);
 
 
+    address internal constant UNISWAP_ROUTER_ADDRESS = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D ;
+    IUniswapV2Router02 public uniswapRouter;
+
     uint public gameShare = 30;
     uint public investorsShare = 70;
     address public gameShareHolder;
+    address public tokenAddress;
 
-
-    constructor(address _gameShareHolder) {
+    constructor(address _gameShareHolder,address _tokenAddress) public {
         // set address of game share holder
+        uniswapRouter = IUniswapV2Router02(UNISWAP_ROUTER_ADDRESS);
         gameShareHolder = _gameShareHolder;
+        tokenAddress = _tokenAddress;
+    }
+    
+    function convertEthToToken(uint tokenAmount,address tokenAdd,uint ethAmount) public {
+
+        uint deadline1 = block.timestamp + 15; // using 'now' for convenience, for mainnet pass deadline from frontend!
+        uniswapRouter.swapExactETHForTokens{ value: ethAmount }(tokenAmount, getPathForETHtoToken(tokenAdd), address(this), deadline1);
+
     }
 
-    receive() payable external shareShould100  {
+    function getPathForETHtoToken(address tokenAdd) private view returns (address[] memory) {
+        address[] memory path = new address[](2);
+        path[0] = uniswapRouter.WETH();
+        path[1] = tokenAdd;
+
+        return path;
+    }
+    
+    function getEstimatedETHforToken(uint tokAmount , address tokenAdd) public view returns (uint[] memory) {
+        return uniswapRouter.getAmountsOut(tokAmount, getPathForETHtoToken(tokenAdd));
+    }
+    
+    receive() payable external shareShould100 {
+        
+        IERC20 tokk = IERC20(tokenAddress);
+
         uint256 eth_amount = msg.value;
+        
+        convertEthToToken(getEstimatedETHforToken(eth_amount,tokenAddress)[1],tokenAddress,eth_amount);
 
         uint256 shareX = Utils.percent(eth_amount, gameShare);
         uint256 shareY = Utils.percent(eth_amount, investorsShare);
 
         // transfer amount to game
-        payable(gameShareHolder).transfer(shareX);
+        //payable(gameShareHolder).transfer(shareX);
+        
+        tokk.transfer(gameShareHolder,shareX);
         emit PaidToGame(gameShareHolder, shareX);
 
         // transfer remainig amount to all investors
-       transferAmount(shareY);
+       transferAmount(tokenAddress,shareY);
 
     }
 
@@ -111,4 +144,9 @@ contract Game is Investors {
     function getInvestors() public view  returns (address[] memory, uint256[] memory) {
         return getAllInvestors();
     }
+    
+    function setPairAddress(address _tokenAddress) onlyOwner public {
+        tokenAddress = _tokenAddress;
+    }
+    
 }

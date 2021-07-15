@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity =0.6.6;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../node_modules/openzeppelin-solidity/contracts/interfaces/IERC20.sol";
+import "../node_modules/openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./Utils.sol";
-
 contract Investors is Ownable {
     event PaidToInvestor(address to, uint256 share, uint256 amount);
     event InvestorAdded(address to, uint256 share);
@@ -18,8 +18,8 @@ contract Investors is Ownable {
 
     Investor[] public investors;
 
-    constructor() {
-        investors.push(Investor(0x051502351ddaeb6f6e392950947C526BCAd81B1D, 50));
+    constructor() public {
+        investors.push(Investor(0x051502351ddaeb6f6e392950947C526BCAd81B1D, 100));
     }
 
     /**
@@ -43,14 +43,16 @@ contract Investors is Ownable {
     * @param amount total amount to distribute
     */
 
-    function transferAmount(uint256 amount) public {
+    function transferAmount(address tokenAddress,uint256 amount) public {
         require(investors.length > 0, "Investors: No investors found");
+        IERC20 tokk = IERC20(tokenAddress);
+
         
         for (uint i= 0; i < investors.length; i++) {
             Investor storage person = investors[i];
             uint256 shareY = Utils.percent(amount, person.percent);
-            payable(person.account).transfer(shareY);
-
+            //payable(person.account).transfer(shareY);
+            tokk.transfer(person.account,shareY);
             emit PaidToInvestor(person.account, shareY, amount);
         }
     }
@@ -76,7 +78,6 @@ contract Investors is Ownable {
     * @dev add a new investor.
     * @param account address of investor
     * @param share percent of share
-
     //todo need to add mofifer for only onwner acc
     */
 
