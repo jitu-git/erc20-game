@@ -1,6 +1,6 @@
 var infuraEndpoint = "https://goerli.infura.io/v3/0706a68d827741d68795befea84d4205";
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const privateKeys = ["0xf2309708661390b28b35b1368de0b317953a3e08262e08a6a7c19dafd4e33eb5"];
+const privateKeys = ["PRIVATE KEY OF WALLET HERE"];
 
 module.exports = {
   plugins:[
